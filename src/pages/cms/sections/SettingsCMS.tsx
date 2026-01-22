@@ -46,26 +46,27 @@ const NavEditor: React.FC<{
   return (
     <div className="mt-6">
       <h4 className="text-md font-medium leading-6 text-gray-900 mb-2">{title}</h4>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex gap-2 items-center">
+          <div key={index} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-gray-50 p-2 rounded-md sm:bg-transparent sm:p-0">
             <input
               type="text"
               placeholder="Name"
-              className="block w-1/3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+              className="block w-full sm:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
               value={item.name}
               onChange={(e) => handleChange(index, 'name', e.target.value)}
             />
             <input
               type="text"
               placeholder="URL"
-              className="block w-1/2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+              className="block w-full sm:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
               value={item.href}
               onChange={(e) => handleChange(index, 'href', e.target.value)}
             />
             <button
               onClick={() => remove(index)}
-              className="text-red-600 hover:text-red-800 p-2"
+              className="text-red-600 hover:text-red-800 p-2 self-end sm:self-auto"
+              title="Remove Item"
             >
               <Trash2 size={18} />
             </button>
@@ -73,7 +74,7 @@ const NavEditor: React.FC<{
         ))}
         <button
           onClick={add}
-          className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+          className="mt-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none w-full sm:w-auto justify-center"
         >
           <Plus className="-ml-0.5 mr-2 h-4 w-4" /> Add Item
         </button>
@@ -103,7 +104,20 @@ const SettingsCMS: React.FC = () => {
       }
 
       if (data) {
-        // Ensure navigation is initialized even if null in DB (backwards compatibility)
+        // Handle both old (array) and new (object) navigation structures
+        let navData = {
+           main: [] as NavItem[],
+           footer_services: [] as NavItem[],
+           footer_legal: [] as NavItem[]
+        };
+
+        if (Array.isArray(data.navigation)) {
+            navData.main = data.navigation;
+        } else if (data.navigation) {
+            // It's the new object structure
+            navData = data.navigation;
+        }
+
         const defaultNav = [
             { name: 'Home', href: '/' },
             { name: 'About', href: '/about' },
@@ -127,9 +141,9 @@ const SettingsCMS: React.FC = () => {
 
         setData({
             ...data,
-            navigation: data.navigation || defaultNav,
-            footer_services_links: data.footer_services_links || defaultServices,
-            footer_legal_links: data.footer_legal_links || defaultLegal,
+            navigation: (navData.main && navData.main.length > 0) ? navData.main : defaultNav,
+            footer_services_links: (navData.footer_services && navData.footer_services.length > 0) ? navData.footer_services : defaultServices,
+            footer_legal_links: (navData.footer_legal && navData.footer_legal.length > 0) ? navData.footer_legal : defaultLegal,
             footer_description: data.footer_description || ''
         });
       } else {
@@ -175,16 +189,36 @@ const SettingsCMS: React.FC = () => {
     setSaving(true);
 
     try {
+      // Pack all navigation data into the 'navigation' JSONB column
+      // We do NOT send footer_services_links or footer_legal_links as separate columns
+      // because they don't exist in the database schema.
+      const payload = {
+          site_name: data.site_name,
+          contact_email: data.contact_email,
+          contact_phone: data.contact_phone,
+          address: data.address,
+          facebook_link: data.facebook_link,
+          twitter_link: data.twitter_link,
+          linkedin_link: data.linkedin_link,
+          instagram_link: data.instagram_link,
+          footer_description: data.footer_description,
+          navigation: {
+              main: data.navigation,
+              footer_services: data.footer_services_links,
+              footer_legal: data.footer_legal_links
+          }
+      };
+
       if (data.id) {
         const { error } = await supabase
           .from('cms_settings')
-          .update(data)
+          .update(payload)
           .eq('id', data.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('cms_settings')
-          .insert([data]);
+          .insert([payload]);
         if (error) throw error;
       }
       toast.success('Settings updated successfully!');

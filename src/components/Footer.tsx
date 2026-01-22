@@ -55,12 +55,20 @@ const Footer = () => {
         (payload) => {
           const newData = payload.new as any;
           if (newData) {
+             let footerServices = undefined;
+             let footerLegal = undefined;
+             
+             if (newData.navigation && !Array.isArray(newData.navigation)) {
+                 footerServices = newData.navigation.footer_services;
+                 footerLegal = newData.navigation.footer_legal;
+             }
+
              setData(prev => ({
                 ...prev,
                 ...newData,
                 footer_description: newData.footer_description ?? prev.footer_description,
-                footer_services_links: newData.footer_services_links ?? prev.footer_services_links,
-                footer_legal_links: newData.footer_legal_links ?? prev.footer_legal_links
+                footer_services_links: footerServices ?? prev.footer_services_links,
+                footer_legal_links: footerLegal ?? prev.footer_legal_links
              }));
           }
         }
@@ -85,16 +93,24 @@ const Footer = () => {
       }
 
       if (settingsData) {
+        let footerServices = undefined;
+        let footerLegal = undefined;
+
+        if (settingsData.navigation && !Array.isArray(settingsData.navigation)) {
+             footerServices = settingsData.navigation.footer_services;
+             footerLegal = settingsData.navigation.footer_legal;
+        }
+
         setData({
           ...settingsData,
           footer_description: settingsData.footer_description || 'Empowering businesses with cutting-edge AI technology and intelligent automation solutions.',
-          footer_services_links: settingsData.footer_services_links || [
+          footer_services_links: footerServices || [
              { name: 'Machine Learning', href: '#' },
              { name: 'Natural Language Processing', href: '#' },
              { name: 'Computer Vision', href: '#' },
              { name: 'AI Consulting', href: '#' }
           ],
-          footer_legal_links: settingsData.footer_legal_links || [
+          footer_legal_links: footerLegal || [
              { name: 'Privacy Policy', href: '#' },
              { name: 'Terms of Service', href: '#' },
              { name: 'Cookie Policy', href: '#' }

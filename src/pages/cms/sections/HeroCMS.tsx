@@ -137,7 +137,7 @@ const HeroCMS: React.FC = () => {
             onChange={(e) => setData({ ...data, subheadline: e.target.value })}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">CTA Text</label>
             <input
@@ -159,15 +159,15 @@ const HeroCMS: React.FC = () => {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Hero Image</label>
-          <div className="mt-1 flex items-center space-x-4">
+          <div className="mt-1 flex flex-col sm:flex-row items-start sm:items-center gap-4 space-x-0 sm:space-x-4">
             {data.image_url && (
               <img 
                 src={data.image_url} 
                 alt="Hero Preview" 
-                className="h-32 w-48 object-cover rounded-md border"
+                className="h-32 w-full sm:w-48 object-cover rounded-md border"
               />
             )}
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full sm:w-auto">
               <input
                 type="file"
                 accept="image/*"

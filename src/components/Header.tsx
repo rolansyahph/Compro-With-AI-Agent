@@ -39,7 +39,14 @@ const Header = () => {
           const newData = payload.new as any;
           if (newData) {
             if (newData.site_name) setSiteName(newData.site_name);
-            if (newData.navigation) setNavigation(newData.navigation);
+            
+            if (newData.navigation) {
+                if (Array.isArray(newData.navigation)) {
+                    setNavigation(newData.navigation);
+                } else if (newData.navigation.main) {
+                    setNavigation(newData.navigation.main);
+                }
+            }
           }
         }
       )
@@ -59,7 +66,14 @@ const Header = () => {
 
       if (data) {
         if (data.site_name) setSiteName(data.site_name);
-        if (data.navigation) setNavigation(data.navigation);
+        
+        if (data.navigation) {
+            if (Array.isArray(data.navigation)) {
+                setNavigation(data.navigation);
+            } else if (data.navigation.main) {
+                setNavigation(data.navigation.main);
+            }
+        }
       }
     } catch (error) {
       console.error('Error fetching settings:', error);

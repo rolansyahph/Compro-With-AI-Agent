@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { LayoutDashboard, Info, Settings, LogOut, Eye, Home } from 'lucide-react';
+import { LayoutDashboard, Info, Settings, LogOut, Eye, Home, Menu, X } from 'lucide-react';
 import HomeCMS from './sections/HomeCMS';
 import AboutCMS from './sections/AboutCMS';
 import SettingsCMS from './sections/SettingsCMS';
@@ -10,6 +10,7 @@ import SettingsCMS from './sections/SettingsCMS';
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -58,20 +59,41 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gray-100 flex relative">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-md">
-        <div className="p-6 border-b">
+      <div className={`
+        fixed md:static inset-y-0 left-0 z-50 w-64 bg-white shadow-md transform transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0
+      `}>
+        <div className="p-6 border-b flex justify-between items-center">
           <h1 className="text-xl font-bold text-gray-900 flex items-center">
             <LayoutDashboard className="mr-2 h-6 w-6 text-blue-600" />
             Compro CMS
           </h1>
+          <button 
+            className="md:hidden text-gray-500 hover:text-gray-700"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={24} />
+          </button>
         </div>
         <nav className="mt-6 px-4 space-y-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setIsSidebarOpen(false);
+              }}
               className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-50 text-blue-700'
@@ -95,15 +117,21 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-2xl font-bold text-gray-900">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="bg-white shadow-sm flex items-center justify-between p-4 md:py-4 md:px-6 lg:px-8">
+          <div className="flex items-center">
+            <button
+              className="md:hidden mr-4 text-gray-500 hover:text-gray-700"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
               {tabs.find(t => t.id === activeTab)?.label}
             </h1>
           </div>
         </header>
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
           {renderContent()}
         </main>
       </div>

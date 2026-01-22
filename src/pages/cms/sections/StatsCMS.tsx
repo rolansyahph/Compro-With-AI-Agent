@@ -109,8 +109,8 @@ const StatsCMS: React.FC = () => {
       
       <div className="space-y-4">
         {stats.map((stat, index) => (
-          <div key={index} className="flex gap-4 items-end border p-4 rounded bg-gray-50">
-            <div className="flex-1">
+          <div key={index} className="flex flex-col sm:flex-row gap-4 items-start sm:items-end border p-4 rounded bg-gray-50">
+            <div className="flex-1 w-full sm:w-auto">
               <label className="block text-xs font-medium text-gray-700">Number</label>
               <input
                 type="text"
@@ -120,7 +120,7 @@ const StatsCMS: React.FC = () => {
                 placeholder="e.g. 500+"
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 w-full sm:w-auto">
               <label className="block text-xs font-medium text-gray-700">Label</label>
               <input
                 type="text"
@@ -130,7 +130,7 @@ const StatsCMS: React.FC = () => {
                 placeholder="e.g. Projects Completed"
               />
             </div>
-            <div className="w-20">
+            <div className="w-full sm:w-20">
               <label className="block text-xs font-medium text-gray-700">Order</label>
               <input
                 type="number"
@@ -141,7 +141,7 @@ const StatsCMS: React.FC = () => {
             </div>
             <button
               onClick={() => handleDeleteStat(index)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded"
+              className="p-2 text-red-600 hover:bg-red-50 rounded self-end sm:self-auto"
             >
               <Trash2 className="h-5 w-5" />
             </button>
