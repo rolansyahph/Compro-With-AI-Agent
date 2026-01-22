@@ -8,7 +8,7 @@ const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const SITE_URL = import.meta.env.VITE_SITE_URL || 'http://localhost:5173';
 const SITE_NAME = import.meta.env.VITE_SITE_NAME || 'AI Project';
 
-export const sendMessageToOpenRouter = async (messages: ChatMessage[], model: string = 'openai/gpt-4.1-nano') => {
+export const sendMessageToOpenRouter = async (messages: ChatMessage[], model: string = 'openai/gpt-3.5-turbo') => {
   if (!API_KEY) {
     throw new Error('OpenRouter API Key is missing. Please check your .env configuration.');
   }
