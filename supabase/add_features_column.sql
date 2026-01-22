@@ -1,0 +1,1 @@
+ALTER TABLE cms_services ADD COLUMN IF NOT EXISTS features TEXT[] DEFAULT '{}';

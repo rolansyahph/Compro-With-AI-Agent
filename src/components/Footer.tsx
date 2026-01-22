@@ -1,7 +1,111 @@
-import React from 'react';
-import { Bot, Twitter, Linkedin, Github } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Bot, Twitter, Linkedin, Github, Facebook, Instagram } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+interface NavItem {
+  name: string;
+  href: string;
+}
+
+interface FooterData {
+  site_name: string;
+  twitter_link?: string;
+  linkedin_link?: string;
+  facebook_link?: string;
+  instagram_link?: string;
+  footer_description?: string;
+  footer_services_links: NavItem[];
+  footer_legal_links: NavItem[];
+}
 
 const Footer = () => {
+  const [data, setData] = useState<FooterData>({
+    site_name: 'AI Solutions',
+    twitter_link: '#',
+    linkedin_link: '#',
+    facebook_link: '#',
+    instagram_link: '#',
+    footer_description: 'Empowering businesses with cutting-edge AI technology and intelligent automation solutions.',
+    footer_services_links: [
+      { name: 'Machine Learning', href: '#' },
+      { name: 'Natural Language Processing', href: '#' },
+      { name: 'Computer Vision', href: '#' },
+      { name: 'AI Consulting', href: '#' }
+    ],
+    footer_legal_links: [
+      { name: 'Privacy Policy', href: '#' },
+      { name: 'Terms of Service', href: '#' },
+      { name: 'Cookie Policy', href: '#' }
+    ]
+  });
+
+  useEffect(() => {
+    fetchSettings();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('footer_settings')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'cms_settings'
+        },
+        (payload) => {
+          const newData = payload.new as any;
+          if (newData) {
+             setData(prev => ({
+                ...prev,
+                ...newData,
+                footer_description: newData.footer_description ?? prev.footer_description,
+                footer_services_links: newData.footer_services_links ?? prev.footer_services_links,
+                footer_legal_links: newData.footer_legal_links ?? prev.footer_legal_links
+             }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data: settingsData, error } = await supabase
+        .from('cms_settings')
+        .select('*')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching settings:', error);
+        return;
+      }
+
+      if (settingsData) {
+        setData({
+          ...settingsData,
+          footer_description: settingsData.footer_description || 'Empowering businesses with cutting-edge AI technology and intelligent automation solutions.',
+          footer_services_links: settingsData.footer_services_links || [
+             { name: 'Machine Learning', href: '#' },
+             { name: 'Natural Language Processing', href: '#' },
+             { name: 'Computer Vision', href: '#' },
+             { name: 'AI Consulting', href: '#' }
+          ],
+          footer_legal_links: settingsData.footer_legal_links || [
+             { name: 'Privacy Policy', href: '#' },
+             { name: 'Terms of Service', href: '#' },
+             { name: 'Cookie Policy', href: '#' }
+          ]
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -9,46 +113,64 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Bot className="h-8 w-8 text-blue-400" />
-              <span className="text-xl font-bold">AI Solutions</span>
+              <span className="text-xl font-bold">{data.site_name}</span>
             </div>
             <p className="text-gray-400 mb-4">
-              Empowering businesses with cutting-edge AI technology and intelligent automation solutions.
+              {data.footer_description}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Twitter">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="LinkedIn">
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="GitHub">
-                <Github className="h-5 w-5" />
-              </a>
+              {data.twitter_link && (
+                <a href={data.twitter_link} className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Twitter">
+                  <Twitter className="h-5 w-5" />
+                </a>
+              )}
+              {data.linkedin_link && (
+                <a href={data.linkedin_link} className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="LinkedIn">
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              )}
+              {data.facebook_link && (
+                <a href={data.facebook_link} className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Facebook">
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {data.instagram_link && (
+                <a href={data.instagram_link} className="text-gray-400 hover:text-blue-400 transition-colors" aria-label="Instagram">
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
             </div>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Services</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Machine Learning</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Natural Language Processing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Computer Vision</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">AI Consulting</a></li>
+              {data.footer_services_links.map((item, index) => (
+                <li key={index}>
+                  <a href={item.href} className="hover:text-white transition-colors">
+                    {item.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
+              {data.footer_legal_links.map((item, index) => (
+                <li key={index}>
+                  <a href={item.href} className="hover:text-white transition-colors">
+                    {item.name}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2026 AI Solutions. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {data.site_name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

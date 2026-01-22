@@ -1,8 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
+
+interface HeroData {
+  headline: string;
+  subheadline: string;
+  cta_text: string;
+  cta_link: string;
+  image_url: string;
+}
 
 const Hero = () => {
+  const [data, setData] = useState<HeroData>({
+    headline: '',
+    subheadline: '',
+    cta_text: '',
+    cta_link: '',
+    image_url: ''
+  });
+
+  useEffect(() => {
+    fetchHeroData();
+  }, []);
+
+  const fetchHeroData = async () => {
+    try {
+      const { data: heroData, error } = await supabase
+        .from('cms_hero')
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error fetching hero data:', error);
+        return;
+      }
+
+      if (heroData) {
+        setData({
+          headline: heroData.headline || data.headline,
+          subheadline: heroData.subheadline || data.subheadline,
+          cta_text: heroData.cta_text || data.cta_text,
+          cta_link: heroData.cta_link || data.cta_link,
+          image_url: heroData.image_url || data.image_url
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20 overflow-hidden">
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
@@ -21,15 +68,11 @@ const Hero = () => {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Transform Your Business with{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                Artificial Intelligence
-              </span>
+              {data.headline}
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Unlock the power of AI to automate processes, gain insights, and drive innovation. 
-              Our cutting-edge solutions help businesses scale efficiently and stay ahead of the competition.
+              {data.subheadline}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -37,8 +80,9 @@ const Hero = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+                onClick={() => window.location.href = data.cta_link}
               >
-                <span>Get Started</span>
+                <span>{data.cta_text}</span>
                 <ArrowRight className="h-5 w-5" />
               </motion.button>
               
@@ -60,7 +104,7 @@ const Hero = () => {
           >
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=400&fit=crop&crop=center"
+                src={data.image_url}
                 alt="AI Technology Visualization"
                 className="rounded-2xl shadow-2xl w-full h-auto"
                 width="600"

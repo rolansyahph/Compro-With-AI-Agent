@@ -10,6 +10,9 @@ import About from './src/pages/About';
 import Services from './src/pages/Services';
 import Contact from './src/pages/Contact';
 import NotFound from './src/pages/NotFound';
+import Login from './src/pages/Login';
+import Dashboard from './src/pages/cms/Dashboard';
+import ProtectedRoute from './src/components/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
@@ -21,6 +24,12 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            
+            <Route path="/cms" element={<ProtectedRoute />}>
+              <Route path="dashboard" element={<Dashboard />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer

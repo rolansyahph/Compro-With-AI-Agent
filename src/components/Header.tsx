@@ -1,17 +1,74 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Menu, X, Bot } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+interface NavItem {
+  name: string;
+  href: string;
+}
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
-
-  const navigation = [
+  const [siteName, setSiteName] = useState('AI Solutions');
+  const [navigation, setNavigation] = useState<NavItem[]>([
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
     { name: 'Services', href: '/services' },
-    { name: 'Contact', href: '/contact' }
-  ];
+    { name: 'Contact', href: '/contact' },
+    { name: 'Login', href: '/login' }
+  ]);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+
+  useEffect(() => {
+    fetchSettings();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('header_settings')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'cms_settings'
+        },
+        (payload) => {
+          const newData = payload.new as any;
+          if (newData) {
+            if (newData.site_name) setSiteName(newData.site_name);
+            if (newData.navigation) setNavigation(newData.navigation);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cms_settings')
+        .select('site_name, navigation')
+        .single();
+
+      if (data) {
+        if (data.site_name) setSiteName(data.site_name);
+        if (data.navigation) setNavigation(data.navigation);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const displayNavigation = navigation.filter(item => 
+    !(isPreview && item.href === '/login')
+  );
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -21,11 +78,11 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
             <Bot className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">AI Solutions</span>
+            <span className="text-xl font-bold text-gray-900">{siteName}</span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
+            {displayNavigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
@@ -52,7 +109,7 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col space-y-4">
-              {navigation.map((item) => (
+              {displayNavigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}

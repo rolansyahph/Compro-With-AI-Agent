@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
+
+interface StatItem {
+  number: string;
+  label: string;
+  display_order?: number;
+}
 
 const Stats = () => {
-  const stats = [
-    { number: '500+', label: 'Projects Completed' },
-    { number: '98%', label: 'Client Satisfaction' },
-    { number: '50+', label: 'AI Models Deployed' },
-    { number: '24/7', label: 'Support Available' }
-  ];
+  const [stats, setStats] = useState<StatItem[]>([]);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cms_stats')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching stats:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setStats(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
