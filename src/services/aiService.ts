@@ -8,9 +8,18 @@ const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const SITE_URL = import.meta.env.VITE_SITE_URL || 'http://localhost:5173';
 const SITE_NAME = import.meta.env.VITE_SITE_NAME || 'AI Project';
 
-export const sendMessageToOpenRouter = async (messages: ChatMessage[], model: string = 'openai/gpt-3.5-turbo') => {
+// Debug logging to help troubleshoot Vercel deployment
+console.log('AI Service Configuration:', {
+  hasKey: !!API_KEY,
+  keyLength: API_KEY ? API_KEY.length : 0,
+  siteUrl: SITE_URL,
+  mode: import.meta.env.MODE
+});
+
+export const sendMessageToOpenRouter = async (messages: ChatMessage[], model: string = 'openai/gpt-4.1-nano') => {
   if (!API_KEY) {
-    throw new Error('OpenRouter API Key is missing. Please check your .env configuration.');
+    console.error('OpenRouter API Key is missing. Please check VITE_OPENROUTER_API_KEY environment variable.');
+    throw new Error('OpenRouter API Key is missing. Please check your .env configuration or Vercel Environment Variables.');
   }
 
   try {

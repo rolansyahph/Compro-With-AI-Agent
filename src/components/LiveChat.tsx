@@ -270,11 +270,11 @@ const LiveChat = () => {
         // Callback handled by useEffect watching states
       });
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to get AI response:', err);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting to the server. Please check your API key or try again later.",
+        text: `Error: ${err.message || "Connection failed"}. Please check API Key.`,
         sender: 'bot',
         timestamp: new Date(),
         isError: true
